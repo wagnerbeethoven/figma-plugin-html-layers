@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>HTMLayers</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --plugin-accent:        #7b61ff;
+      --plugin-accent-hover:  #6a50ee;
+      --plugin-accent-subtle: rgba(123, 97, 255, 0.1);
+      --plugin-accent-fg:     #ffffff;
+      /* Fallbacks light — overridden by Figma vars at runtime */
+      --figma-color-bg:            #ffffff;
+      --figma-color-bg-secondary:  #f5f5f5;
+      --figma-color-text:          #1a1a1a;
+      --figma-color-text-secondary:#666666;
+      --figma-color-border:        #e5e5e5;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --figma-color-bg:            #2c2c2c;
+        --figma-color-bg-secondary:  #383838;
+        --figma-color-text:          #ffffff;
+        --figma-color-text-secondary:#aaaaaa;
+        --figma-color-border:        #4a4a4a;
+      }
+    }
+
+    body {
+      font: 12px/1.5 "Inter", "Segoe UI", system-ui, sans-serif;
+      color: var(--figma-color-text);
+      background: var(--figma-color-bg);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--figma-color-border); border-radius: 999px; }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--figma-color-border);
+      flex-shrink: 0;
+    }
+    .logo {
+      width: 22px; height: 22px;
+      background: var(--plugin-accent); border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo span { color: #fff; font-size: 9px; font-weight: 700; font-family: monospace; letter-spacing: -0.5px; }
+    .header-text { flex: 1; min-width: 0; }
+    .header-text h1 { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .header-text p { font-size: 10px; color: var(--figma-color-text-secondary); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+    .lang-select {
+      height: 24px; padding: 0 6px;
+      border: 1px solid var(--figma-color-border); border-radius: 5px;
+      background: var(--figma-color-bg-secondary); color: var(--figma-color-text);
+      font: inherit; font-size: 10px; cursor: pointer; outline: none;
+      transition: border-color 120ms;
+    }
+    .lang-select:focus { border-color: var(--plugin-accent); }
+
+    .btn-icon {
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px 7px; border: none; border-radius: 5px;
+      background: transparent; color: var(--figma-color-text-secondary);
+      font: inherit; font-size: 11px; cursor: pointer; outline: none;
+      transition: background 100ms, color 100ms;
+    }
+    .btn-icon:hover { background: var(--figma-color-bg-secondary); color: var(--figma-color-text); }
+
+    /* ─── Toolbar ─── */
+    .toolbar {
+      display: flex; flex-direction: column;
+      border-bottom: 1px solid var(--figma-color-border);
+      flex-shrink: 0;
+      background: var(--figma-color-bg-secondary);
+    }
+    .toolbar-row {
+      display: flex; align-items: center;
+      border-bottom: 1px solid var(--figma-color-border);
+    }
+    .toolbar-row:last-child { border-bottom: none; }
+
+    .toggle-label {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 12px; cursor: pointer; user-select: none;
+      font-size: 11px; color: var(--figma-color-text-secondary);
+      border-right: 1px solid var(--figma-color-border);
+      transition: background 100ms;
+    }
+    .toggle-label:last-of-type { border-right: none; }
+    .toggle-label:hover { background: var(--figma-color-bg); }
+    .toggle-label input[type="checkbox"] { accent-color: var(--plugin-accent); cursor: pointer; width: 12px; height: 12px; }
+    .toggle-label.active { color: var(--plugin-accent); font-weight: 500; }
+    .toggle-hint { font-size: 9px; color: var(--figma-color-text-secondary); opacity: 0.55; margin-left: 2px; }
+
+    .toolbar-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      border-right: 1px solid var(--figma-color-border);
+      font-size: 11px; color: var(--figma-color-text-secondary);
+      transition: opacity 120ms;
+    }
+    .toolbar-item:last-child { border-right: none; }
+    .toolbar-item label { font-size: 10px; color: var(--figma-color-text-secondary); white-space: nowrap; }
+    /* [U5] dim separator when irrelevant in leaf mode */
+    .toolbar-item.disabled { opacity: 0.38; pointer-events: none; }
+
+    .toolbar-select {
+      height: 22px; padding: 0 5px;
+      border: 1px solid var(--figma-color-border); border-radius: 4px;
+      background: var(--figma-color-bg); color: var(--figma-color-text);
+      font: inherit; font-size: 11px; cursor: pointer; outline: none;
+      transition: border-color 120ms;
+    }
+    .toolbar-select:focus { border-color: var(--plugin-accent); }
+
+    /* ─── Bulk bar ─── */
+    .bulk-bar {
+      display: none; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      background: var(--plugin-accent-subtle);
+      border-bottom: 1px solid rgba(123,97,255,0.2);
+      flex-shrink: 0;
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-count { font-size: 11px; color: var(--plugin-accent); font-weight: 500; flex-shrink: 0; }
+    .bulk-select {
+      flex: 1; max-width: 160px;
+      height: 24px; padding: 0 5px;
+      border: 1px solid rgba(123,97,255,0.3); border-radius: 5px;
+      background: var(--figma-color-bg); color: var(--figma-color-text);
+      font: inherit; font-size: 11px; outline: none;
+      transition: border-color 120ms;
+    }
+    .bulk-select:focus { border-color: var(--plugin-accent); }
+    .btn-sm {
+      height: 24px; padding: 0 10px; border: none; border-radius: 5px;
+      font: inherit; font-size: 11px; font-weight: 500; cursor: pointer; outline: none;
+      transition: background 100ms;
+    }
+    .btn-sm-primary { background: var(--plugin-accent); color: #fff; }
+    .btn-sm-primary:hover { background: var(--plugin-accent-hover); }
+    .btn-sm-ghost { background: var(--figma-color-bg); color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
+    .btn-sm-ghost:hover { background: var(--figma-color-bg-secondary); color: var(--figma-color-text); }
+
+    /* ─── List header ─── */
+    .list-header {
+      display: none;
+      grid-template-columns: 22px 1fr 96px 140px;
+      align-items: center; gap: 6px; padding: 4px 12px;
+      background: var(--figma-color-bg-secondary);
+      border-bottom: 1px solid var(--figma-color-border);
+      flex-shrink: 0;
+    }
+    .list-header.visible { display: grid; }
+    .list-header span { font-size: 9px; font-weight: 600; color: var(--figma-color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+    .list-header input { accent-color: var(--plugin-accent); cursor: pointer; }
+
+    /* ─── Layer list ─── */
+    .layer-list { flex: 1; overflow-y: auto; padding: 2px 0; }
+
+    .empty-state {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 100%; gap: 10px;
+      color: var(--figma-color-text-secondary); opacity: 0.5;
+    }
+    .empty-state p { font-size: 12px; }
+
+    /* ─── Layer row ─── */
+    .layer-row {
+      display: grid;
+      grid-template-columns: 22px auto 14px 1fr 96px 140px;
+      align-items: center; gap: 6px; padding: 3px 12px;
+      min-height: 28px; transition: background 80ms;
+    }
+    .layer-row:hover { background: var(--figma-color-bg-secondary); }
+    .layer-row.checked { background: var(--plugin-accent-subtle); }
+
+    .row-check { accent-color: var(--plugin-accent); cursor: pointer; }
+    .layer-icon { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; }
+    .layer-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; color: var(--figma-color-text); }
+
+    .tag-select {
+      width: 96px; height: 22px; padding: 0 4px;
+      border: 1px solid var(--figma-color-border); border-radius: 5px;
+      background: var(--figma-color-bg-secondary); color: var(--figma-color-text);
+      font: inherit; font-size: 10px; cursor: pointer; outline: none;
+      transition: border-color 120ms;
+    }
+    .tag-select:focus { border-color: var(--plugin-accent); box-shadow: 0 0 0 2px var(--plugin-accent-subtle); }
+    /* [U7] visual distinction: auto-default tag vs user-assigned */
+    .tag-select.tag-auto { color: var(--figma-color-text-secondary); font-style: italic; }
+
+    /* [U4] direction ltr — rtl was inverting separators like → and — */
+    .preview-path {
+      font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 9px; color: var(--plugin-accent);
+      background: var(--plugin-accent-subtle);
+      padding: 2px 5px; border-radius: 3px;
+      width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      direction: ltr; text-align: left;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      border-top: 1px solid var(--figma-color-border);
+      background: var(--figma-color-bg-secondary);
+      flex-shrink: 0;
+    }
+    .count-text { flex: 1; font-size: 11px; color: var(--figma-color-text-secondary); }
+    .btn {
+      height: 28px; padding: 0 14px; border: none; border-radius: 6px;
+      font: inherit; font-size: 11px; font-weight: 500;
+      cursor: pointer; outline: none;
+      transition: background 100ms, opacity 100ms;
+    }
+    .btn-ghost { background: transparent; color: var(--figma-color-text-secondary); border: 1px solid var(--figma-color-border); }
+    .btn-ghost:hover { background: var(--figma-color-bg); color: var(--figma-color-text); }
+    .btn-primary { background: var(--plugin-accent); color: #fff; }
+    .btn-primary:hover { background: var(--plugin-accent-hover); }
+    .btn-primary:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed; bottom: 50px; left: 12px; right: 12px; z-index: 200;
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: 6px;
+      border: 1px solid var(--figma-color-border);
+      background: var(--figma-color-bg-secondary); color: var(--figma-color-text);
+      font-size: 12px; transform: translateY(6px); opacity: 0; pointer-events: none;
+      transition: opacity 130ms, transform 130ms;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .toast.success { border-color: #1a7f5a; }
+    .toast.error   { border-color: #f24822; }
+
+    /* ─── About modal ─── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4); z-index: 300;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      width: 340px; max-width: calc(100vw - 24px); max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      border: 1px solid var(--figma-color-border); border-radius: 10px;
+      background: var(--figma-color-bg); color: var(--figma-color-text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .dlg-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--figma-color-border); gap: 8px; }
+    .dlg-logo { width: 26px; height: 26px; background: var(--plugin-accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .dlg-logo span { color: #fff; font-size: 10px; font-weight: 700; font-family: monospace; }
+    .dlg-header h2 { font-size: 13px; font-weight: 600; flex: 1; }
+    .badge-version { font-size: 10px; color: var(--figma-color-text-secondary); background: var(--figma-color-bg-secondary); padding: 2px 7px; border-radius: 999px; border: 1px solid var(--figma-color-border); }
+    .btn-close { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 4px; background: transparent; color: var(--figma-color-text-secondary); font-size: 16px; cursor: pointer; transition: background 100ms; }
+    .btn-close:hover { background: var(--figma-color-bg-secondary); }
+    .dlg-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .dlg-desc { font-size: 12px; color: var(--figma-color-text-secondary); line-height: 1.6; }
+    .author-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--figma-color-border); border-radius: 8px; background: var(--figma-color-bg-secondary); }
+    .author-avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--plugin-accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .author-name { font-size: 12px; font-weight: 600; }
+    .author-handle { font-size: 10px; color: var(--figma-color-text-secondary); margin-top: 1px; }
+    .links-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .link-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid var(--figma-color-border); border-radius: 6px; background: var(--figma-color-bg-secondary); color: var(--figma-color-text); font: inherit; font-size: 11px; text-decoration: none; cursor: pointer; transition: border-color 120ms, background 120ms, color 120ms; }
+    .link-btn:hover { border-color: var(--plugin-accent); background: var(--plugin-accent-subtle); color: var(--plugin-accent); }
+    .dlg-footer { padding: 9px 16px; border-top: 1px solid var(--figma-color-border); text-align: center; font-size: 10px; color: var(--figma-color-text-secondary); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo"><span>&lt;/&gt;</span></div>
+    <div class="header-text">
+      <h1>HTMLayers</h1>
+      <p data-i18n="header.subtitle"></p>
+    </div>
+    <div class="header-actions">
+      <select class="lang-select" id="langSelect" title="Language / Idioma">
+        <option value="pt-BR">🇧🇷 PT</option>
+        <option value="en">🇺🇸 EN</option>
+      </select>
+      <button class="btn-icon" id="btnAbout">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="6" cy="6" r="5"/>
+          <path d="M6 5.5v3M6 3.5v.5"/>
+        </svg>
+        <span data-i18n="header.about"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <label class="toggle-label" id="lblOrigName">
+        <input type="checkbox" id="optOriginalName">
+        <span data-i18n="toolbar.includeName"></span>
+      </label>
+      <label class="toggle-label" id="lblNumSiblings">
+        <input type="checkbox" id="optNumberSiblings">
+        <span data-i18n="toolbar.numberSiblings"></span>
+        <span class="toggle-hint">li · 1, li · 2</span>
+      </label>
+    </div>
+    <div class="toolbar-row">
+      <!-- [U5] separator dimmed when pathMode=leaf -->
+      <div class="toolbar-item" id="separatorItem">
+        <label data-i18n="toolbar.separator"></label>
+        <select class="toolbar-select" id="optSeparator">
+          <option value=" > "> &gt; </option>
+          <option value=" / "> / </option>
+          <option value=" → "> → </option>
+          <option value=" . "> . </option>
+          <option value=" _ "> _ </option>
+          <option value=" — "> — </option>
+        </select>
+      </div>
+      <div class="toolbar-item">
+        <label data-i18n="toolbar.pathMode"></label>
+        <select class="toolbar-select" id="optPathMode">
+          <option value="full"  data-i18n-opt="toolbar.modeFull"></option>
+          <option value="leaf"  data-i18n-opt="toolbar.modeLeaf"></option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount"></span>
+    <select class="bulk-select" id="bulkTagSelect"></select>
+    <button class="btn-sm btn-sm-primary" id="btnBulkApply" data-i18n="bulk.apply"></button>
+    <button class="btn-sm btn-sm-ghost"   id="btnDeselectAll" data-i18n="bulk.clear"></button>
+  </div>
+
+  <div class="list-header" id="listHeader">
+    <input type="checkbox" id="checkAll">
+    <span data-i18n="list.layer"></span>
+    <span data-i18n="list.tag"></span>
+    <span data-i18n="list.preview"></span>
+  </div>
+
+  <div class="layer-list" id="layerList"></div>
+
+  <div class="footer">
+    <span class="count-text" id="countBadge"></span>
+    <button class="btn btn-ghost" id="btnCancel" data-i18n="footer.cancel"></button>
+    <button class="btn btn-primary" id="btnRename" disabled data-i18n="footer.rename"></button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal-overlay" id="aboutOverlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="modal">
+      <div class="dlg-header">
+        <div class="dlg-logo"><span>&lt;/&gt;</span></div>
+        <h2 id="dlgTitle">HTMLayers</h2>
+        <span class="badge-version">v1.0.0</span>
+        <button class="btn-close" id="btnCloseAbout" aria-label="Fechar">✕</button>
+      </div>
+      <div class="dlg-body">
+        <p class="dlg-desc" data-i18n="about.description"></p>
+        <div class="author-card">
+          <div class="author-avatar">W</div>
+          <div>
+            <div class="author-name">Wagner Beethoven</div>
+            <div class="author-handle">wagnerbeethoven@gmail.com</div>
+          </div>
+        </div>
+        <div class="links-row">
+          <a class="link-btn" href="https://github.com/wagnerbeethoven" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a class="link-btn" href="#" id="linkCommunity" target="_blank" rel="noopener">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <span data-i18n="about.community"></span>
+          </a>
+          <a class="link-btn" href="mailto:wagnerbeethoven@gmail.com">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+            Email
+          </a>
+        </div>
+      </div>
+      <div class="dlg-footer" data-i18n="about.footer"></div>
+    </div>
+  </div>
+
+  <script>
+    // ─── i18n ─────────────────────────────────────────────────────────────────
+    const T = {
+      'pt-BR': {
+        'header.subtitle':        'Renomeie layers com tags HTML + hierarquia',
+        'header.about':           'Sobre',
+        'toolbar.includeName':    'Incluir nome original',
+        'toolbar.numberSiblings': 'Numerar irmãos',
+        'toolbar.separator':      'Separador',
+        'toolbar.pathMode':       'Modo',
+        'toolbar.modeFull':       'Hierarquia completa',
+        'toolbar.modeLeaf':       'Somente item',
+        'bulk.apply':             'Aplicar a todas',
+        'bulk.clear':             'Limpar seleção',
+        'bulk.selected':          '{n} selecionada{s}',
+        'list.layer':             'Layer',
+        'list.tag':               'Tag',
+        'list.preview':           'Preview',
+        'empty.message':          'Selecione layers no Figma',
+        'footer.none':            'Nenhuma layer selecionada',
+        'footer.count':           '{n} layer{s} selecionada{s}',
+        'footer.cancel':          'Cancelar',
+        'footer.rename':          'Renomear tudo',
+        'footer.renameSelected':  'Renomear selecionadas',
+        'about.description':      'Atribua tags HTML semânticas às layers e renomeie com o caminho hierárquico completo. ex: header > nav > ul > li > a',
+        'about.community':        'Figma Community',
+        'about.footer':           'MIT License · HTMLayers',
+        'toast.renamed':          '✓ {count} layer{s} renomeada{s}',
+        // [U3] tag group labels — locale-aware
+        'tags.structural':  'Estrutural',
+        'tags.text':        'Texto',
+        'tags.list':        'Lista',
+        'tags.interactive': 'Interativo',
+        'tags.media':       'Mídia',
+        'tags.table':       'Tabela',
+        'tags.semantic':    'Semântico',
+      },
+      'en': {
+        'header.subtitle':        'Rename layers with HTML tags + hierarchy',
+        'header.about':           'About',
+        'toolbar.includeName':    'Include original name',
+        'toolbar.numberSiblings': 'Number siblings',
+        'toolbar.separator':      'Separator',
+        'toolbar.pathMode':       'Mode',
+        'toolbar.modeFull':       'Full hierarchy',
+        'toolbar.modeLeaf':       'Item only',
+        'bulk.apply':             'Apply to all',
+        'bulk.clear':             'Clear selection',
+        'bulk.selected':          '{n} selected',
+        'list.layer':             'Layer',
+        'list.tag':               'Tag',
+        'list.preview':           'Preview',
+        'empty.message':          'Select layers in Figma',
+        'footer.none':            'No layers selected',
+        'footer.count':           '{n} layer{s} selected',
+        'footer.cancel':          'Cancel',
+        'footer.rename':          'Rename all',
+        'footer.renameSelected':  'Rename selected',
+        'about.description':      'Assign semantic HTML tags to layers and automatically rename with full hierarchical path. e.g. header > nav > ul > li > a',
+        'about.community':        'Figma Community',
+        'about.footer':           'MIT License · HTMLayers',
+        'toast.renamed':          '✓ {count} layer{s} renamed',
+        'tags.structural':  'Structural',
+        'tags.text':        'Text',
+        'tags.list':        'List',
+        'tags.interactive': 'Interactive',
+        'tags.media':       'Media',
+        'tags.table':       'Table',
+        'tags.semantic':    'Semantic',
+      },
+    };
+
+    let lang = 'pt-BR';
+
+    function t(key, vars = {}) {
+      const map = T[lang] || T['en'];
+      const str = map[key] || T['en'][key] || key;
+      return str.replace(/\{(\w+)\}/g, (_, k) => vars[k] !== undefined ? vars[k] : '');
+    }
+
+    function plural(n) { return n !== 1 ? 's' : ''; }
+
+    function applyI18n() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.dataset.i18n);
+      });
+      document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+        el.textContent = t(el.dataset.i18nOpt);
+      });
+    }
+
+    document.getElementById('langSelect').addEventListener('change', e => {
+      lang = e.target.value;
+      document.documentElement.lang = lang;
+      _optGroupsCache = null; // [P3] bust options cache on lang change
+      applyI18n();
+      renderLayers(true); // force full rebuild for new optgroup labels
+    });
+
+    // ─── Tag data ─────────────────────────────────────────────────────────────
+    // [U3] labelKey resolved via t() — locale-aware
+    const TAG_GROUPS = [
+      { labelKey: 'tags.structural', tags: ['div','section','article','aside','main','header','footer','nav'] },
+      { labelKey: 'tags.text',       tags: ['p','span','h1','h2','h3','h4','h5','h6','blockquote','cite','code','pre','kbd','abbr','strong','em','small','mark','del','ins','sub','sup'] },
+      { labelKey: 'tags.list',       tags: ['ul','ol','li','dl','dt','dd'] },
+      { labelKey: 'tags.interactive',tags: ['a','button','form','input','label','select','textarea','fieldset','legend','output'] },
+      { labelKey: 'tags.media',      tags: ['img','figure','figcaption','video','audio','svg','canvas','picture'] },
+      { labelKey: 'tags.table',      tags: ['table','thead','tbody','tfoot','tr','th','td','caption'] },
+      { labelKey: 'tags.semantic',   tags: ['address','time','details','summary','dialog','menu'] },
+    ];
+
+    // ─── Icons ────────────────────────────────────────────────────────────────
+    const SQ = `var(--figma-color-text-secondary)`;
+    const AC = `var(--plugin-accent)`;
+    const BG = `var(--figma-color-bg)`;
+    const ICONS = {
+      FRAME:             `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><rect x="2" y="2" width="8" height="8" rx="0.5"/><line x1="2" y1="5" x2="0" y2="5"/><line x1="2" y1="7" x2="0" y2="7"/><line x1="10" y1="5" x2="12" y2="5"/><line x1="10" y1="7" x2="12" y2="7"/><line x1="5" y1="2" x2="5" y2="0"/><line x1="7" y1="2" x2="7" y2="0"/><line x1="5" y1="10" x2="5" y2="12"/><line x1="7" y1="10" x2="7" y2="12"/></svg>`,
+      GROUP:             `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><rect x="1" y="3" width="6" height="6" rx="1"/><rect x="5" y="3" width="6" height="6" rx="1" fill="${BG}" stroke="${SQ}"/></svg>`,
+      TEXT:              `<svg width="12" height="12" viewBox="0 0 12 12"><text x="1" y="10" font-size="11" font-family="Georgia,serif" font-weight="bold" fill="${SQ}">T</text></svg>`,
+      RECTANGLE:         `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><rect x="1" y="3" width="10" height="6" rx="1"/></svg>`,
+      ELLIPSE:           `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><ellipse cx="6" cy="6" rx="5" ry="4"/></svg>`,
+      VECTOR:            `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><path d="M2 10 C4 4, 8 4, 10 10"/></svg>`,
+      BOOLEAN_OPERATION: `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><circle cx="4.5" cy="6" r="3.5"/><circle cx="7.5" cy="6" r="3.5"/></svg>`,
+      COMPONENT:         `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${AC}" stroke-width="1.3"><path d="M6 1L11 6L6 11L1 6Z"/></svg>`,
+      INSTANCE:          `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${AC}" stroke-width="1.3"><path d="M6 1L11 6L6 11L1 6Z"/><circle cx="6" cy="6" r="2" fill="${AC}"/></svg>`,
+      COMPONENT_SET:     `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${AC}" stroke-width="1.3"><path d="M6 1L11 6L6 11L1 6Z"/><path d="M3.5 6h5M6 3.5v5"/></svg>`,
+    };
+    const ICON_DEFAULT = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="${SQ}" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1"/></svg>`;
+
+    // ─── State ────────────────────────────────────────────────────────────────
+    let layers      = [];
+    let assignments = {};
+    let checked     = new Set();
+    let currentOpts = { includeOriginalName: false, numberSiblings: false, separator: ' > ', pathMode: 'full' };
+    let _renderedIds = []; // [P4] track rendered structure for in-place patch
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    // [P3] cache optgroups HTML per lang — rebuilt only on lang change
+    let _optGroupsCache = null;
+    function getOptGroupsHtml() {
+      if (_optGroupsCache) return _optGroupsCache;
+      let html = '';
+      for (const g of TAG_GROUPS) {
+        html += `<optgroup label="${esc(t(g.labelKey))}">`;
+        for (const tag of g.tags) html += `<option value="${tag}">${tag}</option>`;
+        html += '</optgroup>';
+      }
+      _optGroupsCache = html;
+      return html;
+    }
+
+    // [B2] esc(id) — defend against unexpected chars in node IDs
+    function buildSelectHtml(id, defaultTag, cls) {
+      const autoGroup = `<optgroup label="Auto"><option value="${esc(defaultTag)}">${esc(defaultTag)}</option></optgroup>`;
+      return `<select class="${cls}" data-id="${esc(id)}">${autoGroup}${getOptGroupsHtml()}</select>`;
+    }
+
+    function initBulkSelect() {
+      const placeholder = `<option value="">— tag —</option>`;
+      document.getElementById('bulkTagSelect').innerHTML = placeholder + getOptGroupsHtml();
+    }
+
+    // ─── Toast ────────────────────────────────────────────────────────────────
+    let _toastTimer = null;
+    function showToast(msg, type = 'success') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast ${type} visible`;
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => el.classList.remove('visible'), 3000);
+    }
+
+    // ─── Rename button label ──────────────────────────────────────────────────
+    // [U1] button reflects scope: "all" vs "selected (N)"
+    function updateRenameButton() {
+      const btn = document.getElementById('btnRename');
+      if (!layers.length) { btn.disabled = true; btn.textContent = t('footer.rename'); return; }
+      btn.disabled = false;
+      btn.textContent = checked.size > 0
+        ? `${t('footer.renameSelected')} (${checked.size})`
+        : `${t('footer.rename')} (${layers.length})`;
+    }
+
+    // ─── Render ───────────────────────────────────────────────────────────────
+    // [P4] in-place patch when layer structure unchanged; full rebuild otherwise
+    function renderLayers(forceRebuild = false) {
+      const list    = document.getElementById('layerList');
+      const hdr     = document.getElementById('listHeader');
+      const countEl = document.getElementById('countBadge');
+
+      if (!layers.length) {
+        list.innerHTML = `<div class="empty-state">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18M9 21V9"/>
+          </svg>
+          <p>${esc(t('empty.message'))}</p>
+        </div>`;
+        hdr.classList.remove('visible');
+        countEl.textContent = t('footer.none');
+        _renderedIds = [];
+        updateRenameButton();
+        updateBulkBar();
+        return;
+      }
+
+      hdr.classList.add('visible');
+      const n = layers.length, s = plural(n);
+      countEl.textContent = t('footer.count', { n, s });
+
+      const newIds = layers.map(l => `${l.id}:${l.type}:${l.depth}`);
+      const sameStructure = !forceRebuild &&
+        newIds.length === _renderedIds.length &&
+        newIds.every((id, i) => id === _renderedIds[i]);
+
+      if (sameStructure) {
+        // [P4] patch only changed cells — preserve DOM, scroll pos, focus
+        const rows = list.querySelectorAll('.layer-row');
+        layers.forEach((layer, i) => {
+          const row = rows[i];
+          if (!row) return;
+          const tag    = assignments[layer.id] || layer.storedTag || layer.defaultTag;
+          const isAuto = !assignments[layer.id] && !layer.storedTag;
+          const isCk   = checked.has(layer.id);
+
+          const preview = row.querySelector('.preview-path');
+          if (preview) { preview.textContent = layer.preview; preview.title = layer.preview; }
+
+          const sel = row.querySelector('.tag-select');
+          if (sel) { if (sel.value !== tag) sel.value = tag; sel.classList.toggle('tag-auto', isAuto); }
+
+          const cb = row.querySelector('.row-check');
+          if (cb && cb.checked !== isCk) cb.checked = isCk;
+          row.classList.toggle('checked', isCk);
+        });
+      } else {
+        // Full rebuild
+        let html = '';
+        for (const layer of layers) {
+          const isCk = checked.has(layer.id);
+          const icon = ICONS[layer.type] || ICON_DEFAULT;
+          html += `
+            <div class="layer-row${isCk ? ' checked' : ''}">
+              <input type="checkbox" class="row-check" data-id="${esc(layer.id)}" ${isCk ? 'checked' : ''}>
+              <div style="width:${layer.depth * 12}px;flex-shrink:0"></div>
+              <div class="layer-icon">${icon}</div>
+              <div class="layer-name" title="${esc(layer.name)}">${esc(layer.name)}</div>
+              ${buildSelectHtml(layer.id, layer.defaultTag, 'tag-select')}
+              <div class="preview-path" title="${esc(layer.preview)}">${esc(layer.preview)}</div>
+            </div>`;
+        }
+        list.innerHTML = html;
+        // [P3] set select values after inserting cached options HTML
+        list.querySelectorAll('.tag-select').forEach((sel, i) => {
+          const layer = layers[i];
+          const tag   = assignments[layer.id] || layer.storedTag || layer.defaultTag;
+          sel.value = tag;
+          sel.classList.toggle('tag-auto', !assignments[layer.id] && !layer.storedTag);
+        });
+        _renderedIds = newIds;
+      }
+
+      updateRenameButton();
+      updateBulkBar();
+      syncCheckAll();
+    }
+
+    function updateBulkBar() {
+      const bar = document.getElementById('bulkBar');
+      const n   = checked.size;
+      document.getElementById('bulkCount').textContent = t('bulk.selected', { n, s: plural(n) });
+      bar.classList.toggle('visible', n > 0);
+    }
+
+    function syncCheckAll() {
+      const ca = document.getElementById('checkAll');
+      if (!layers.length)                      { ca.checked = false; ca.indeterminate = false; }
+      else if (checked.size === 0)             { ca.checked = false; ca.indeterminate = false; }
+      else if (checked.size === layers.length) { ca.checked = true;  ca.indeterminate = false; }
+      else                                     { ca.indeterminate = true; }
+    }
+
+    // ─── Event delegation ─────────────────────────────────────────────────────
+    document.getElementById('layerList').addEventListener('change', e => {
+      const el = e.target;
+      if (el.classList.contains('tag-select')) {
+        const id = el.dataset.id;
+        assignments[id] = el.value;
+        parent.postMessage({ pluginMessage: { type: 'set-tag', id, tag: el.value } }, '*');
+      }
+      if (el.classList.contains('row-check')) {
+        const id = el.dataset.id;
+        if (el.checked) checked.add(id); else checked.delete(id);
+        el.closest('.layer-row')?.classList.toggle('checked', el.checked);
+        updateBulkBar();
+        updateRenameButton();
+        syncCheckAll();
+      }
+    });
+
+    document.getElementById('checkAll').addEventListener('change', e => {
+      if (e.target.checked) layers.forEach(l => checked.add(l.id));
+      else checked.clear();
+      renderLayers();
+    });
+
+    document.getElementById('btnBulkApply').addEventListener('click', () => {
+      const tag = document.getElementById('bulkTagSelect').value;
+      if (!tag) return;
+      const tags = [...checked].map(id => ({ id, tag }));
+      tags.forEach(item => { assignments[item.id] = item.tag; });
+      parent.postMessage({ pluginMessage: { type: 'set-tags', tags } }, '*');
+      document.getElementById('bulkTagSelect').value = ''; // [U6] reset after apply
+    });
+
+    document.getElementById('btnDeselectAll').addEventListener('click', () => {
+      checked.clear();
+      renderLayers();
+    });
+
+    // ─── Options ──────────────────────────────────────────────────────────────
+    function onOptChange() {
+      currentOpts = {
+        includeOriginalName: document.getElementById('optOriginalName').checked,
+        numberSiblings:      document.getElementById('optNumberSiblings').checked,
+        separator:           document.getElementById('optSeparator').value,
+        pathMode:            document.getElementById('optPathMode').value,
+      };
+      document.getElementById('lblOrigName').classList.toggle('active',    currentOpts.includeOriginalName);
+      document.getElementById('lblNumSiblings').classList.toggle('active', currentOpts.numberSiblings);
+      // [U5] disable separator select when it has no effect (leaf mode)
+      document.getElementById('separatorItem').classList.toggle('disabled', currentOpts.pathMode === 'leaf');
+      parent.postMessage({ pluginMessage: { type: 'set-options', opts: currentOpts } }, '*');
+    }
+
+    document.getElementById('optOriginalName').addEventListener('change',   onOptChange);
+    document.getElementById('optNumberSiblings').addEventListener('change', onOptChange);
+    document.getElementById('optSeparator').addEventListener('change',      onOptChange);
+    document.getElementById('optPathMode').addEventListener('change',       onOptChange);
+
+    // ─── Footer ───────────────────────────────────────────────────────────────
+    document.getElementById('btnCancel').addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+    });
+
+    // [U1] rename only checked rows when any checked; else rename all
+    document.getElementById('btnRename').addEventListener('click', () => {
+      const scope = checked.size > 0
+        ? layers.filter(l => checked.has(l.id))
+        : layers;
+      const list = scope.map(l => ({
+        id:  l.id,
+        tag: assignments[l.id] || l.storedTag || l.defaultTag,
+      }));
+      document.getElementById('btnRename').disabled = true;
+      parent.postMessage({ pluginMessage: { type: 'rename-all', assignments: list } }, '*');
+    });
+
+    // ─── About modal ──────────────────────────────────────────────────────────
+    function openAbout()  { document.getElementById('aboutOverlay').classList.add('open'); }
+    function closeAbout() { document.getElementById('aboutOverlay').classList.remove('open'); }
+    document.getElementById('btnAbout').addEventListener('click', openAbout);
+    document.getElementById('btnCloseAbout').addEventListener('click', closeAbout);
+    document.getElementById('aboutOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAbout(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAbout(); });
+
+    // ─── Plugin messages ──────────────────────────────────────────────────────
+    // [B3] validate message shape — don't trust arbitrary postMessage content
+    function isValidLayerArray(arr) {
+      return Array.isArray(arr) && arr.every(l =>
+        l && typeof l.id === 'string' &&
+        typeof l.name === 'string' &&
+        typeof l.type === 'string' &&
+        typeof l.depth === 'number' &&
+        typeof l.defaultTag === 'string' &&
+        typeof l.preview === 'string'
+      );
+    }
+
+    window.onmessage = event => {
+      // [B3] validate shape before touching state
+      const msg = event.data?.pluginMessage;
+      if (!msg || typeof msg.type !== 'string') return;
+
+      if (msg.type === 'layers') {
+        if (!isValidLayerArray(msg.layers)) return;
+        layers = msg.layers;
+        if (msg.opts &&
+            typeof msg.opts.separator === 'string' &&
+            (msg.opts.pathMode === 'full' || msg.opts.pathMode === 'leaf')) {
+          currentOpts = msg.opts;
+          document.getElementById('optOriginalName').checked   = !!currentOpts.includeOriginalName;
+          document.getElementById('optNumberSiblings').checked = !!currentOpts.numberSiblings;
+          document.getElementById('optSeparator').value        = currentOpts.separator;
+          document.getElementById('optPathMode').value         = currentOpts.pathMode;
+          document.getElementById('lblOrigName').classList.toggle('active',    currentOpts.includeOriginalName);
+          document.getElementById('lblNumSiblings').classList.toggle('active', currentOpts.numberSiblings);
+          document.getElementById('separatorItem').classList.toggle('disabled', currentOpts.pathMode === 'leaf');
+        }
+        const ids = new Set(layers.map(l => l.id));
+        checked = new Set([...checked].filter(id => ids.has(id)));
+        renderLayers();
+      }
+
+      // [U2] toast uses user's selected language (count from backend)
+      if (msg.type === 'renamed' && typeof msg.count === 'number') {
+        const s = plural(msg.count);
+        showToast(t('toast.renamed', { count: msg.count, s }), 'success');
+        updateRenameButton(); // re-enable button — user can rename again
+      }
+    };
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    initBulkSelect();
+    applyI18n();
+    renderLayers();
+    parent.postMessage({ pluginMessage: { type: 'init' } }, '*');
+  </script>
+</body>
+</html>
