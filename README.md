@@ -2,7 +2,7 @@
 
 > Figma plugin — rename layers using semantic HTML tags with full hierarchy path notation.
 
-![Banner](assets/banner.svg)
+![Banner](assets/thumbnail.svg)
 
 🔗 [Figma Community](https://www.figma.com/community/plugin/1642298458655026735) · [linktr.ee/wagnerbeethoven](https://linktr.ee/wagnerbeethoven)
 
