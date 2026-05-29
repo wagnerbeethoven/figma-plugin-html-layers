@@ -258,29 +258,99 @@
     }
     .modal-overlay.open { display: flex; }
     .modal {
-      width: 340px; max-width: calc(100vw - 24px); max-height: calc(100vh - 40px);
+      width: 360px; max-width: calc(100vw - 24px); max-height: calc(100vh - 40px);
       overflow-y: auto;
       border: 1px solid var(--figma-color-border); border-radius: 10px;
       background: var(--figma-color-bg); color: var(--figma-color-text);
       box-shadow: 0 8px 32px rgba(0,0,0,0.25);
     }
-    .dlg-header { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--figma-color-border); gap: 8px; }
-    .dlg-logo { width: 26px; height: 26px; background: var(--plugin-accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .dlg-logo span { color: #fff; font-size: 10px; font-weight: 700; font-family: monospace; }
-    .dlg-header h2 { font-size: 13px; font-weight: 600; flex: 1; }
-    .badge-version { font-size: 10px; color: var(--figma-color-text-secondary); background: var(--figma-color-bg-secondary); padding: 2px 7px; border-radius: 999px; border: 1px solid var(--figma-color-border); }
-    .btn-close { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 4px; background: transparent; color: var(--figma-color-text-secondary); font-size: 16px; cursor: pointer; transition: background 100ms; }
-    .btn-close:hover { background: var(--figma-color-bg-secondary); }
-    .dlg-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* Header */
+    .dlg-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--figma-color-border);
+    }
+    .dlg-header h2 { font-size: 13px; font-weight: 600; }
+    .btn-close-text {
+      border: none; background: transparent;
+      color: var(--figma-color-text-secondary);
+      font: inherit; font-size: 12px;
+      cursor: pointer; padding: 0;
+      transition: color 100ms;
+    }
+    .btn-close-text:hover { color: var(--figma-color-text); }
+
+    /* Body */
+    .dlg-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
     .dlg-desc { font-size: 12px; color: var(--figma-color-text-secondary); line-height: 1.6; }
-    .author-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--figma-color-border); border-radius: 8px; background: var(--figma-color-bg-secondary); }
-    .author-avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--plugin-accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-    .author-name { font-size: 12px; font-weight: 600; }
-    .author-handle { font-size: 10px; color: var(--figma-color-text-secondary); margin-top: 1px; }
-    .links-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .link-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border: 1px solid var(--figma-color-border); border-radius: 6px; background: var(--figma-color-bg-secondary); color: var(--figma-color-text); font: inherit; font-size: 11px; text-decoration: none; cursor: pointer; transition: border-color 120ms, background 120ms, color 120ms; }
-    .link-btn:hover { border-color: var(--plugin-accent); background: var(--plugin-accent-subtle); color: var(--plugin-accent); }
-    .dlg-footer { padding: 9px 16px; border-top: 1px solid var(--figma-color-border); text-align: center; font-size: 10px; color: var(--figma-color-text-secondary); }
+
+    /* Section label — "CREATED BY", "LINKS" */
+    .dlg-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--figma-color-text-secondary);
+      margin-bottom: 6px;
+    }
+
+    /* Author block */
+    .dlg-author { display: flex; flex-direction: column; gap: 2px; }
+    .dlg-author-name { font-size: 15px; font-weight: 700; color: var(--figma-color-text); }
+
+    /* Version card */
+    .dlg-version-card {
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 14px;
+      border: 1px solid var(--figma-color-border); border-radius: 8px;
+      background: var(--figma-color-bg-secondary);
+      font-size: 12px;
+    }
+    .dlg-version-item { display: flex; flex-direction: column; gap: 1px; }
+    .dlg-version-label { font-size: 10px; color: var(--figma-color-text-secondary); }
+    .dlg-version-value { font-weight: 600; color: var(--figma-color-text); }
+
+    /* Accordion — How to use / What's new */
+    .dlg-accordion { display: flex; flex-direction: column; gap: 6px; }
+    .dlg-details {
+      border: 1px solid var(--figma-color-border); border-radius: 8px;
+      background: var(--figma-color-bg-secondary);
+      overflow: hidden;
+    }
+    .dlg-details summary {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 14px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; user-select: none; list-style: none;
+      color: var(--figma-color-text);
+    }
+    .dlg-details summary::-webkit-details-marker { display: none; }
+    .dlg-details summary::after {
+      content: '›';
+      font-size: 16px; color: var(--figma-color-text-secondary);
+      transition: transform 180ms;
+    }
+    .dlg-details[open] summary::after { transform: rotate(90deg); }
+    .dlg-details-body {
+      padding: 0 14px 12px;
+      font-size: 11px; color: var(--figma-color-text-secondary);
+      line-height: 1.6; border-top: 1px solid var(--figma-color-border);
+    }
+    .dlg-details-body ol { padding-left: 16px; margin-top: 8px; }
+    .dlg-details-body li { margin-bottom: 4px; }
+    .dlg-details-body ul { padding-left: 16px; margin-top: 8px; }
+
+    /* Links */
+    .dlg-links { display: flex; flex-direction: column; gap: 6px; }
+    .dlg-link-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--figma-color-border); border-radius: 8px;
+      background: var(--figma-color-bg-secondary);
+      color: var(--figma-color-text); text-decoration: none;
+      font-size: 12px; transition: border-color 120ms, background 120ms;
+    }
+    .dlg-link-row:hover { border-color: var(--plugin-accent); background: var(--plugin-accent-subtle); color: var(--plugin-accent); }
+    .dlg-link-icon { flex-shrink: 0; color: var(--figma-color-text-secondary); width: 16px; display: flex; align-items: center; justify-content: center; }
+    .dlg-link-row:hover .dlg-link-icon { color: var(--plugin-accent); }
   </style>
 </head>
 <body>
@@ -319,6 +389,13 @@
       </label>
     </div>
     <div class="toolbar-row">
+      <div class="toolbar-item">
+        <label data-i18n="toolbar.pathMode"></label>
+        <select class="toolbar-select" id="optPathMode">
+          <option value="full"  data-i18n-opt="toolbar.modeFull"></option>
+          <option value="leaf"  data-i18n-opt="toolbar.modeLeaf"></option>
+        </select>
+      </div>
       <!-- [U5] separator dimmed when pathMode=leaf -->
       <div class="toolbar-item" id="separatorItem">
         <label data-i18n="toolbar.separator"></label>
@@ -329,13 +406,6 @@
           <option value=" . "> . </option>
           <option value=" _ "> _ </option>
           <option value=" — "> — </option>
-        </select>
-      </div>
-      <div class="toolbar-item">
-        <label data-i18n="toolbar.pathMode"></label>
-        <select class="toolbar-select" id="optPathMode">
-          <option value="full"  data-i18n-opt="toolbar.modeFull"></option>
-          <option value="leaf"  data-i18n-opt="toolbar.modeLeaf"></option>
         </select>
       </div>
     </div>
@@ -367,37 +437,79 @@
 
   <div class="modal-overlay" id="aboutOverlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
     <div class="modal">
+
       <div class="dlg-header">
-        <div class="dlg-logo"><span>&lt;/&gt;</span></div>
-        <h2 id="dlgTitle">HTMLayers</h2>
-        <span class="badge-version">v1.0.0</span>
-        <button class="btn-close" id="btnCloseAbout" aria-label="Fechar">✕</button>
+        <h2 id="dlgTitle" data-i18n="about.title"></h2>
+        <button class="btn-close-text" id="btnCloseAbout" data-i18n="about.close"></button>
       </div>
+
       <div class="dlg-body">
+
+        <!-- Description -->
         <p class="dlg-desc" data-i18n="about.description"></p>
-        <div class="author-card">
-          <div class="author-avatar">W</div>
-          <div>
-            <div class="author-name">Wagner Beethoven</div>
-            <div class="author-handle">wagnerbeethoven@gmail.com</div>
+
+        <!-- Author -->
+        <div>
+          <p class="dlg-section-label" data-i18n="about.createdBy"></p>
+          <div class="dlg-author">
+            <span class="dlg-author-name">Wagner Beethoven</span>
           </div>
         </div>
-        <div class="links-row">
-          <a class="link-btn" href="https://github.com/wagnerbeethoven" target="_blank" rel="noopener">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-            GitHub
-          </a>
-          <a class="link-btn" href="#" id="linkCommunity" target="_blank" rel="noopener">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-            <span data-i18n="about.community"></span>
-          </a>
-          <a class="link-btn" href="mailto:wagnerbeethoven@gmail.com">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
-            Email
-          </a>
+
+        <!-- Version card -->
+        <div class="dlg-version-card">
+          <div class="dlg-version-item">
+            <span class="dlg-version-label" data-i18n="about.version"></span>
+            <span class="dlg-version-value">1.0.0</span>
+          </div>
+          <div class="dlg-version-item">
+            <span class="dlg-version-label" data-i18n="about.lastUpdated"></span>
+            <span class="dlg-version-value" id="lastUpdatedDate"></span>
+          </div>
         </div>
+
+        <!-- Accordion -->
+        <div class="dlg-accordion">
+          <details class="dlg-details">
+            <summary data-i18n="about.howToUse"></summary>
+            <div class="dlg-details-body">
+              <ol id="howToUseList"></ol>
+            </div>
+          </details>
+          <details class="dlg-details">
+            <summary data-i18n="about.whatsNew"></summary>
+            <div class="dlg-details-body">
+              <ul id="whatsNewList"></ul>
+            </div>
+          </details>
+        </div>
+
+        <!-- Links -->
+        <div>
+          <p class="dlg-section-label" data-i18n="about.links"></p>
+          <div class="dlg-links">
+            <a class="dlg-link-row" href="https://linktr.ee/wagnerbeethoven" target="_blank" rel="noopener">
+              <span class="dlg-link-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+              </span>
+              linktr.ee/wagnerbeethoven
+            </a>
+            <a class="dlg-link-row" href="mailto:oi@wagnerbeethoven.com.br">
+              <span class="dlg-link-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"/>
+                  <path d="m2 7 10 7 10-7"/>
+                </svg>
+              </span>
+              oi@wagnerbeethoven.com.br
+            </a>
+          </div>
+        </div>
+
       </div>
-      <div class="dlg-footer" data-i18n="about.footer"></div>
     </div>
   </div>
 
@@ -425,10 +537,29 @@
         'footer.cancel':          'Cancelar',
         'footer.rename':          'Renomear tudo',
         'footer.renameSelected':  'Renomear selecionadas',
-        'about.description':      'Atribua tags HTML semânticas às layers e renomeie com o caminho hierárquico completo. ex: header > nav > ul > li > a',
-        'about.community':        'Figma Community',
-        'about.footer':           'MIT License · HTMLayers',
-        'toast.renamed':          '✓ {count} layer{s} renomeada{s}',
+        'about.title':        'Sobre este plugin',
+        'about.close':        'Fechar',
+        'about.description':  'Atribua tags HTML semânticas às layers do Figma e renomeie automaticamente com o caminho hierárquico completo.',
+        'about.createdBy':    'Criado por',
+        'about.version':      'Versão',
+        'about.lastUpdated':  'Última atualização',
+        'about.howToUse':     'Como usar',
+        'about.whatsNew':     'O que há de novo em v1.0.0',
+        'about.links':        'Links',
+        'about.community':    'Figma Community',
+        'about.footer':       'MIT License · HTMLayers',
+        'toast.renamed':      '✓ {count} layer{s} renomeada{s}',
+        'howToUse.1':  'Selecione layers no Figma (qualquer profundidade)',
+        'howToUse.2':  'Escolha a tag HTML de cada layer no dropdown',
+        'howToUse.3':  'Configure o modo (hierarquia completa ou somente item) e o separador',
+        'howToUse.4':  'Use checkboxes para renomear somente layers selecionadas',
+        'howToUse.5':  'Clique em "Renomear" — Ctrl+Z desfaz tudo',
+        'whatsNew.1':  'Batch assign: aplique uma tag a várias layers de uma vez',
+        'whatsNew.2':  'Numeração de irmãos: li · 1, li · 2, li · 3',
+        'whatsNew.3':  'Incluir nome original: li [Card Item]',
+        'whatsNew.4':  'Separador customizável: >, /, →, ., _, —',
+        'whatsNew.5':  'Modo somente item — sem path, apenas a tag atual',
+        'whatsNew.6':  'Dark mode automático + internacionalização PT/EN',
         // [U3] tag group labels — locale-aware
         'tags.structural':  'Estrutural',
         'tags.text':        'Texto',
@@ -459,10 +590,29 @@
         'footer.cancel':          'Cancel',
         'footer.rename':          'Rename all',
         'footer.renameSelected':  'Rename selected',
-        'about.description':      'Assign semantic HTML tags to layers and automatically rename with full hierarchical path. e.g. header > nav > ul > li > a',
-        'about.community':        'Figma Community',
-        'about.footer':           'MIT License · HTMLayers',
-        'toast.renamed':          '✓ {count} layer{s} renamed',
+        'about.title':        'About this plugin',
+        'about.close':        'Close',
+        'about.description':  'Assign semantic HTML tags to Figma layers and automatically rename them with full hierarchical path notation.',
+        'about.createdBy':    'Created by',
+        'about.version':      'Version',
+        'about.lastUpdated':  'Last updated',
+        'about.howToUse':     'How to use',
+        'about.whatsNew':     "What's new in v1.0.0",
+        'about.links':        'Links',
+        'about.community':    'Figma Community',
+        'about.footer':       'MIT License · HTMLayers',
+        'toast.renamed':      '✓ {count} layer{s} renamed',
+        'howToUse.1':  'Select layers in Figma (any nesting depth)',
+        'howToUse.2':  'Pick an HTML tag for each layer from the dropdown',
+        'howToUse.3':  'Set the mode (full path or item only) and separator',
+        'howToUse.4':  'Check rows to rename only selected layers',
+        'howToUse.5':  'Click Rename — Ctrl+Z undoes everything',
+        'whatsNew.1':  'Batch assign: apply one tag to multiple layers at once',
+        'whatsNew.2':  'Sibling numbering: li · 1, li · 2, li · 3',
+        'whatsNew.3':  'Include original name: li [Card Item]',
+        'whatsNew.4':  'Custom separator: >, /, →, ., _, —',
+        'whatsNew.5':  'Item-only mode — no path, just the current tag',
+        'whatsNew.6':  'Auto dark mode + PT/EN internationalization',
         'tags.structural':  'Structural',
         'tags.text':        'Text',
         'tags.list':        'List',
@@ -490,6 +640,21 @@
       document.querySelectorAll('[data-i18n-opt]').forEach(el => {
         el.textContent = t(el.dataset.i18nOpt);
       });
+
+      // About modal: date + accordion content
+      document.getElementById('lastUpdatedDate').textContent =
+        new Date().toLocaleDateString(lang === 'pt-BR' ? 'pt-BR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const howToUseEl = document.getElementById('howToUseList');
+      if (howToUseEl) {
+        howToUseEl.innerHTML = [1,2,3,4,5]
+          .map(i => `<li>${t(`howToUse.${i}`)}</li>`).join('');
+      }
+      const whatsNewEl = document.getElementById('whatsNewList');
+      if (whatsNewEl) {
+        whatsNewEl.innerHTML = [1,2,3,4,5,6]
+          .map(i => `<li>${t(`whatsNew.${i}`)}</li>`).join('');
+      }
     }
 
     document.getElementById('langSelect').addEventListener('change', e => {
