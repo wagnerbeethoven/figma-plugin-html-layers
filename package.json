@@ -1,0 +1,14 @@
+{
+  "name": "htmlayers",
+  "version": "1.0.0",
+  "description": "Rename Figma layers using semantic HTML tag names with full hierarchy path notation",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.90.0",
+    "typescript": "^5.0.0"
+  }
+}

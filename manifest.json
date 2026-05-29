@@ -1,0 +1,9 @@
+{
+  "name": "HTMLayers",
+  "id": "REPLACE_WITH_YOUR_PLUGIN_ID",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "src/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
+}
