@@ -4,11 +4,15 @@
 
 ![Banner](assets/banner.svg)
 
+🔗 [Figma Community](https://www.figma.com/community/plugin/1642298458655026735) · [linktr.ee/wagnerbeethoven](https://linktr.ee/wagnerbeethoven)
+
 ---
 
 ## What it does
 
-Select any layers in Figma, assign HTML tags to each one, and rename them automatically with their full hierarchical path — turning generic layer names like `Frame 47` into meaningful names like `header > nav > ul > li > a`.
+Turn generic names like `Frame 47` into meaningful names like `header > nav > ul > li > a` — directly in Figma.
+
+Select layers, assign HTML tags, and rename everything in one click. The plugin automatically generates the full hierarchical path based on parent elements.
 
 ```
 header
@@ -31,17 +35,34 @@ header > nav > ul > li · 1 > a [CTA Button]
 | **Sibling numbering** | Auto-adds `· 1`, `· 2`, `· 3` to repeated tags at the same level |
 | **Include original name** | Appends the original Figma layer name: `li [Card Item]` |
 | **Custom separator** | Choose ` > `, ` / `, ` → `, ` . `, ` _ `, ` — ` |
-| **Smart auto-detection** | TEXT layers default to `span`, shapes to `svg`, everything else to `div` |
-| **Persistent tags** | Tag assignments saved per layer via `pluginData` — survive file reopens |
-| **Live preview** | See the final name before committing |
+| **Smart auto-detection** | TEXT → `span`, shapes → `svg`, everything else → `div` |
+| **Persistent tags** | Assignments saved per layer via `pluginData` — survive file reopens |
+| **Live preview** | See the final name before renaming |
 | **Dark / Light mode** | Adapts automatically to Figma's theme |
-| **PT-BR / EN** | Full internationalization with language switcher in the header |
+| **PT-BR / EN** | Full i18n with language switcher in the header |
 
 ---
 
-## Screenshots
+## How to use
 
-> _Add screenshots after publishing to the Figma Community._
+1. **Select layers** in Figma (single or multiple, any nesting depth)
+2. Plugin shows the layer tree with a tag dropdown per row
+3. **Assign tags** — override the auto-detected tag for any layer
+4. Configure via toolbar:
+   - **Mode** — full hierarchy path or item-only
+   - **Separator** — ` > ` ` / ` ` → ` ` . ` ` _ ` ` — ` (disabled in item-only mode)
+   - **Include original name** — appends `[layer name]` to each segment
+   - **Number siblings** — adds `· 1`, `· 2` to repeated tags at the same level
+5. **Check rows** to scope the rename to selected layers only
+6. Click **Rename** — plugin stays open, shows a success toast
+
+### Batch assign
+
+Check multiple rows → bulk bar appears → pick a tag → **Apply to all**.
+
+### Undo
+
+Figma's native **Ctrl+Z / ⌘Z** undoes all renames in a single step.
 
 ---
 
@@ -55,77 +76,34 @@ header > nav > ul > li · 1 > a [CTA Button]
 ### Setup
 
 ```bash
-# Install dependencies
-npm install
-
-# Build once
-npm run build
-
-# Watch mode
-npm run dev
+npm install     # install dependencies
+npm run build   # compile src/code.ts → dist/code.js
+npm run dev     # watch mode
 ```
 
 ### Load in Figma
 
 1. Open **Figma Desktop**
-2. Go to **Plugins → Development → Import plugin from manifest**
-3. Select `manifest.json` from this directory
-4. The plugin appears under **Plugins → Development → HTMLayers**
+2. **Plugins → Development → Import plugin from manifest**
+3. Select `manifest.json`
+4. Plugin appears under **Plugins → Development → HTMLayers**
 
 ### Project structure
 
 ```
 html-layers/
 ├── src/
-│   ├── code.ts       # Plugin backend (Figma sandbox)
-│   └── ui.html       # Plugin UI (webview)
+│   ├── code.ts        # Plugin backend — Figma sandbox logic
+│   └── ui.html        # Plugin UI — vanilla HTML/CSS/JS (single file)
 ├── dist/
-│   └── code.js       # Compiled output (gitignored)
+│   └── code.js        # Compiled output (gitignored)
 ├── assets/
-│   └── banner.svg    # Figma Community banner (1280×640)
-├── manifest.json     # Figma plugin manifest
-├── community.json    # Publication metadata and name suggestions
+│   └── banner.svg     # Figma Community cover (1920×960)
+├── manifest.json      # Figma plugin manifest (id: 1642298458655026735)
+├── community.json     # Publication metadata, name candidates, publish guide
 ├── package.json
 └── tsconfig.json
 ```
-
----
-
-## How to use
-
-1. **Select layers** in Figma (single or multiple, any nesting depth)
-2. The plugin panel shows the layer tree with a tag dropdown per layer
-3. **Assign tags** — change any dropdown to override the auto-detected tag
-4. Use **toolbar options** to configure:
-   - _Include original name_ → appends `[layer name]` to each segment
-   - _Number siblings_ → adds `· 1`, `· 2` to repeated tags
-   - _Separator_ → choose the path separator character
-   - _Mode_ → full path or item-only
-5. Optionally **check rows** to scope the rename to selected layers only
-6. Click **Rename** — layers are renamed in place, plugin stays open
-
-### Batch assign
-
-Check multiple rows → a bulk bar appears at the top of the list → pick a tag → **Apply to all**.
-
-### Undo
-
-Figma's native **Ctrl+Z / ⌘Z** undoes all renames in a single step.
-
----
-
-## Publishing to Figma Community
-
-See [`community.json`](community.json) for:
-- Recommended plugin name and 9 alternatives
-- Category, tags, and descriptions (PT-BR + EN)
-- Step-by-step publish checklist
-
-**Before publishing:**
-1. Generate a unique plugin ID in Figma Desktop → copy it into `manifest.json` replacing `REPLACE_WITH_YOUR_PLUGIN_ID`
-2. Run `npm run build` to compile `dist/code.js`
-3. Test batch rename on a file with at least 3 levels of nesting
-4. Export `assets/banner.svg` to PNG at 2× for the cover image
 
 ---
 
@@ -134,11 +112,12 @@ See [`community.json`](community.json) for:
 | | |
 |---|---|
 | **Language** | TypeScript |
-| **Build** | `tsc` (no bundler) |
-| **UI** | Vanilla HTML/CSS/JS — single file, no framework |
-| **Plugin API** | Figma Plugin API v1, `dynamic-page` access |
-| **Theming** | Figma CSS variables (`--figma-color-*`) + `prefers-color-scheme` fallbacks |
-| **i18n** | Inline translation map, `data-i18n` attributes |
+| **Build** | `tsc` — no bundler |
+| **UI** | Vanilla HTML/CSS/JS, single file, zero dependencies |
+| **Plugin API** | Figma Plugin API v1, `dynamic-page` document access |
+| **Theming** | `--figma-color-*` CSS variables + `prefers-color-scheme` fallbacks |
+| **i18n** | Inline translation map, `data-i18n` attributes, per-lang option cache |
+| **Persistence** | `node.setPluginData` — only non-default tags written |
 
 ---
 
