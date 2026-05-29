@@ -1,0 +1,51 @@
+{
+  "name_suggestions": [
+    { "name": "HTMLayers",       "rationale": "HTML + Layers. Curto, único, memorável. Recomendado." },
+    { "name": "TagPath",         "rationale": "Descreve o core: tag + path hierárquico." },
+    { "name": "Semantic Rename", "rationale": "Direto ao ponto. Apelo a devs e a11y." },
+    { "name": "LayerTag",        "rationale": "Simples, descritivo, fácil de buscar." },
+    { "name": "Tagify Layers",   "rationale": "Orientado a ação, moderno." },
+    { "name": "TagTree",         "rationale": "Enfatiza a hierarquia em árvore." },
+    { "name": "HTML Namer",      "rationale": "Extremamente claro sobre o propósito." },
+    { "name": "Semantic Layers", "rationale": "Apelo a times de design system e a11y." },
+    { "name": "HTML Hierarchy",  "rationale": "Técnico e preciso." },
+    { "name": "LayerSemantics",  "rationale": "Appeal dev-centric, único no mercado." }
+  ],
+  "recommended_name": "HTMLayers",
+
+  "community_publication": {
+    "category": "Developer Tools",
+    "tags": [
+      "html", "rename", "layers", "semantic", "developer",
+      "naming", "front-end", "accessibility", "design-system", "handoff"
+    ],
+    "description_short": "Renomeie layers do Figma com tags HTML semânticas e notação de hierarquia completa.",
+    "description_long": "Ferramenta de produtividade para devs front-end e times de design system.\n\nSelecione layers no Figma, atribua tags HTML (div, section, nav, ul, li, a, button, p, h1–h6, blockquote, code, pre, kbd, e muito mais) e renomeie com o path hierárquico completo — ex: header > nav > ul > li > a.\n\n✦ Funcionalidades:\n• +50 tags HTML organizadas por categoria (Estrutural, Texto, Lista, Interativo, Mídia, Tabela, Semântico)\n• Auto-detecção inteligente: TEXT → span/p, shapes → svg, demais → div\n• Batch rename: atribua tags a múltiplas layers de uma vez\n• Tags persistentes: salvas por layer, sobrevivem ao reabrir o arquivo\n• Preview em tempo real: veja o nome final antes de confirmar\n\n✦ Ideal para:\n• Handoff para devs com nomes semânticos\n• Design systems com convenções HTML-aligned\n• Times focados em acessibilidade\n• Padronização de nomenclatura front-end no Figma",
+
+    "pricing": "free",
+
+    "preview_images_suggested": [
+      "UI do plugin mostrando lista de layers com dropdowns de tags",
+      "Before/after: nomes genéricos do Figma vs. paths HTML gerados",
+      "Dropdown aberto mostrando todas as categorias de tags",
+      "Exemplo de arquivo Figma com layers renomeadas (header > nav > ul > li > a)"
+    ],
+
+    "figma_publish_steps": [
+      "1. Build: npm run build (gera dist/code.js)",
+      "2. Figma Desktop → Menu → Plugins → Development → Import plugin from manifest",
+      "3. Selecione manifest.json para testar localmente",
+      "4. Quando pronto: Figma → Plugins → Publish new version",
+      "5. Preencha nome, descrição (description_long acima), categoria Developer Tools",
+      "6. Adicione as tags listadas em 'tags'",
+      "7. Upload das preview images sugeridas",
+      "8. Submeta para revisão (geralmente 1–3 dias úteis)"
+    ],
+
+    "important_notes": [
+      "Gere um ID único para o plugin: abra Figma Desktop → Plugins → Development → New plugin → copie o ID gerado e substitua 'REPLACE_WITH_YOUR_PLUGIN_ID' em manifest.json",
+      "O campo 'api' em manifest.json deve ser '1.0.0' — não altere",
+      "Não publique sem testar batch rename com layers aninhadas de pelo menos 3 níveis"
+    ]
+  }
+}
